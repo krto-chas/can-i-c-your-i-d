@@ -1,25 +1,32 @@
-// index.js
-const express = require("express");
+const express = require('express');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// (valfritt) middleware
 app.use(express.json());
 
-// Health/status endpoint som testen förväntar sig
-app.get("/status", (req, res) => {
-  res.json({ status: "ok" });
+app.get('/status', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Exportera appen för tester och annan användning
-module.exports = app;
+app.get('/secret', (req, res) => {
+  res.json({
+    message: 'Secret objective unlocked',
+    hint: 'The Architect sees the full pipeline.'
+  });
+});
 
-// Starta bara servern om denna fil körs direkt:
-//   node index.js
-// Inte när den importeras (t.ex. i test.js)
+app.get('/', (req, res) => {
+  res.send('First Pipeline Challenge - Week 4');
+});
+
 if (require.main === module) {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
   });
 }
+
+module.exports = app;
