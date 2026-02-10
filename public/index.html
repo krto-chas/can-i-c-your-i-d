@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>I-C-your-I-D | DevSecOps Patrol</title>
+  <style>
+    :root {
+      --bg-a: #07131b;
+      --bg-b: #0f1f2c;
+      --ink: #ecf4f8;
+      --muted: #b7c7d1;
+      --accent: #00d1a6;
+      --warn: #ffcc66;
+      --danger: #ff5f7a;
+      --card: rgba(255,255,255,0.06);
+      --line: rgba(255,255,255,0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, #13314a 0%, transparent 30%),
+        radial-gradient(circle at 90% 20%, #183a2f 0%, transparent 25%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .panel {
+      width: min(960px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(8, 17, 24, 0.72);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      background: rgba(0, 209, 166, 0.1);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+      letter-spacing: 0.4px;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: clamp(14px, 2vw, 18px);
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      padding: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 124px;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .state {
+      margin-top: 10px;
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .ok { background: rgba(0, 209, 166, 0.2); color: var(--accent); }
+    .warn { background: rgba(255, 204, 102, 0.2); color: var(--warn); }
+    .danger { background: rgba(255, 95, 122, 0.2); color: var(--danger); }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 16px 20px 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    a {
+      color: var(--ink);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    a:hover { border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <section class="header">
+      <div>
+        <div class="badge">I-C-your-I-D Patrol</div>
+        <h1>I see your ID.<br>And your insecure dependencies.</h1>
+        <p class="subtitle">First Pipeline Challenge - A mildly paranoid DevSecOps dashboard with severe trust issues.</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>CI</h2>
+        <p>Builds run faster than rumors in standup. Tests execute before coffee is cold.</p>
+        <span class="state ok">Pipeline Green-ish</span>
+      </article>
+
+      <article class="card">
+        <h2>CD</h2>
+        <p>Deploys on merge like clockwork. If it breaks in prod, we call it "monitoring data".</p>
+        <span class="state warn">Webhook Armed</span>
+      </article>
+
+      <article class="card">
+        <h2>DevSecOps</h2>
+        <p>Trivy scans every image. Vulnerabilities get named and shamed in broad daylight.</p>
+        <span class="state danger">Trust But Verify</span>
+      </article>
+
+      <article class="card">
+        <h2>ID Checkpoint</h2>
+        <p>"I-C-your-I-D" means no anonymous commits, no mystery containers, no mercy.</p>
+        <span class="state ok">Identity Confirmed</span>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <div>"Move fast and patch things."</div>
+      <div class="links">
+        <a href="/health">/health</a>
+        <a href="/status">/status</a>
+        <a href="/ready">/ready</a>
+        <a href="/version">/version</a>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>
+

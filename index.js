@@ -1,10 +1,15 @@
 const express = require('express');
+const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const startTime = Date.now();
 
 // Middleware för JSON parsing
 app.use(express.json());
+
+// Serve static site content
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -16,7 +21,7 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => {
   const uptime = process.uptime();
   const memoryUsage = process.memoryUsage();
-  
+
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -50,9 +55,8 @@ app.get('/secret', (req, res) => {
 
 // Readiness check - för container orchestration
 app.get('/ready', (req, res) => {
-  // Här kan du lägga till checks för databas, externa services etc.
-  const ready = true; // Sätt till false om något kritiskt inte fungerar
-  
+  const ready = true;
+
   if (ready) {
     res.status(200).json({ ready: true });
   } else {
@@ -70,37 +74,27 @@ app.get('/version', (req, res) => {
   res.json({
     version: process.env.VERSION || '1.0.0',
     build: process.env.BUILD_NUMBER || 'local',
-    commit: process.env.COMMIT_SHA || 'unknown'
+    commit: process.env.COMMIT_SHA || 'unknown',
+    runningSince: new Date(startTime).toISOString()
   });
 });
 
-// Root endpoint
+// Root fallback
 app.get('/', (req, res) => {
-  res.send(`
-    <h1>First Pipeline Challenge - Week 4</h1>
-    <h2>Silver & Gold Edition 🥈🥇</h2>
-    <ul>
-      <li><a href="/health">Health Check</a></li>
-      <li><a href="/status">Status</a></li>
-      <li><a href="/ready">Readiness</a></li>
-      <li><a href="/live">Liveness</a></li>
-      <li><a href="/version">Version</a></li>
-      <li><a href="/api/echo" style="color: #888;">/api/echo (POST)</a></li>
-    </ul>
-  `);
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // API endpoint - exempel på enkel CRUD
 app.post('/api/echo', (req, res) => {
   const { message } = req.body;
-  
+
   if (!message) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       error: 'Message is required',
       timestamp: new Date().toISOString()
     });
   }
-  
+
   res.json({
     echo: message,
     receivedAt: new Date().toISOString()
@@ -141,9 +135,9 @@ process.on('SIGTERM', () => {
 let server;
 if (require.main === module) {
   server = app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`⏰ Started at: ${new Date().toISOString()}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Started at: ${new Date().toISOString()}`);
   });
   // Graceful shutdown for started server
   process.on('SIGTERM', () => {
