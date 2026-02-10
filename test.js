@@ -2,14 +2,24 @@
 const http = require("http");
 const app = require("./index.js");
 
-function httpGetJson({ hostname, port, path }) {
+function requestJson(port, path) {
   return new Promise((resolve, reject) => {
     const req = http.request(
-      { hostname, port, path, method: "GET", timeout: 5000 },
+      {
+        hostname: '127.0.0.1',
+        port,
+        path,
+        method: 'GET',
+        timeout: 5000
+      },
       (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
           try {
             const json = JSON.parse(data);
             resolve({ statusCode: res.statusCode, json });
@@ -21,11 +31,14 @@ function httpGetJson({ hostname, port, path }) {
       }
     );
 
-    req.on("timeout", () => {
-      req.destroy(new Error("Request timed out"));
+    req.on('timeout', () => {
+      req.destroy(new Error(`Request timed out for ${path}`));
     });
 
-    req.on("error", (err) => reject(err));
+    req.on('error', (err) => {
+      reject(new Error(`Connection failed for ${path}: ${err.message}`));
+    });
+
     req.end();
   });
 }
@@ -82,8 +95,11 @@ function httpPostJson({ hostname, port, path, body }) {
     process.exit(1);
   });
 
-  // Vänta tills servern faktiskt lyssnar
-  await new Promise((resolve) => server.once("listening", resolve));
+  const secretRes = await requestJson(port, '/secret');
+  if (secretRes.statusCode !== 200 || !secretRes.json.message) {
+    throw new Error('Secret endpoint missing message field');
+  }
+}
 
   const port = server.address().port;
   console.log(`Test server started on port ${port}\n`);
