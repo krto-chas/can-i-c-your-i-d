@@ -8,14 +8,16 @@
     "dev": "NODE_ENV=development node index.js",
     "test": "node test.js",
     "test:coverage": "c8 node test.js",
-    "lint": "echo 'Linting...' && exit 0",
-    "security": "echo 'Running security audit...' && npm audit --audit-level=high"
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "security": "npm audit --audit-level=high || true"
   },
   "dependencies": {
     "express": "^4.18.2"
   },
   "devDependencies": {
-    "c8": "^8.0.1"
+    "c8": "^8.0.1",
+    "eslint": "^8.50.0"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -65,6 +65,22 @@ Run with Docker Compose:
 docker compose up --build
 ```
 
+## Gold checklist (what's added/required for gold level)
+
+- Proper linting with `eslint` (run `npm run lint`).
+- Comprehensive test suite with 10 tests and coverage (`npm test`, `npm run test:coverage`).
+- Dockerfile hardened to run as non-root user and includes a `HEALTHCHECK`.
+- `.dockerignore` and `.gitignore` added to reduce build context and avoid secrets.
+- `SECURITY.md`, `CONTRIBUTING.md` and `.env.example` added.
+
+Quick verification commands:
+
+```bash
+npm install
+npm run lint
+npm test
+```
+
 ## Team Sync Tips
 
 When several developers work in the same repo, sync often to avoid conflicts:
