@@ -33,14 +33,5 @@ jobs:
         with:
           image-ref: 'first-pipeline:latest'
           format: 'table'
-          exit-code: '0'  # Satt till 0 så den inte failar på vulnerabilities
-
-      
-
-
-# TODO: Add your steps here
-      # - Install dependencies
-      # - Run tests
-      # - Build Docker image
-      # - Scan with Trivy
-      # - Deploy to hosting service
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
