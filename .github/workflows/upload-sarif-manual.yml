@@ -1,0 +1,36 @@
+name: Manual SARIF Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      sarif_path:
+        description: 'Path to SARIF file in repo (default: trivy-results.sarif)'
+        required: false
+        default: 'trivy-results.sarif'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  upload-sarif:
+    name: Upload SARIF (manual)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure SARIF file exists
+        run: |
+          echo "Checking for SARIF at '${{ github.event.inputs.sarif_path }}'"
+          if [ ! -f "${{ github.event.inputs.sarif_path }}" ]; then
+            echo "SARIF file not found: ${{ github.event.inputs.sarif_path }}"
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ github.event.inputs.sarif_path }}

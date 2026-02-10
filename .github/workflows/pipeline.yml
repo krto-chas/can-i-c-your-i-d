@@ -9,6 +9,10 @@ on:
 env:
   DOCKER_IMAGE: first-pipeline
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   # Job 1: Test & Quality
   test:
@@ -86,10 +90,10 @@ jobs:
           exit-code: '0'
 
       - name: Upload Trivy results to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
+        if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
 
       - name: Run container structure tests
         run: |
