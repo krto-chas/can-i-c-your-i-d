@@ -121,14 +121,11 @@ Test server started on port 54321
 ✓ Unknown routes return 404
 ✓ All health endpoints are accessible
 
-==================================================
 📊 Test Summary
-==================================================
 Total tests: 10
 ✓ Passed: 10
 ✗ Failed: 0
 Coverage: 100%
-==================================================
 
 ✅ All tests passed!
 ```
