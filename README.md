@@ -101,7 +101,7 @@ Then watch your pipeline in the **Actions** tab! 🚀
 
 ## 📊 Pipeline Status
 
-View your pipeline runs: [Actions Tab](https://github.com/YOUR-USERNAME/forked-pipeline/actions)
+View your pipeline runs: [Actions Tab](https://github.com/krto-chas/can-i-c-your-i-d/actions)
 
 ## 📈 Code Coverage
 
@@ -111,10 +111,10 @@ Download from the Actions tab → Workflow run → Artifacts section.
 ## 🐳 Docker Hub Integration
 
 Your Docker images are automatically pushed to Docker Hub when you push to `main`:
-- `your-username/first-pipeline:latest`
-- `your-username/first-pipeline:COMMIT_SHA`
+- `krto-chas/can-i-c-your-i-d`
+- `krto-chas/can-i-c-your-i-d:COMMIT_SHA`
 
-View at: `https://hub.docker.com/r/your-username/first-pipeline`
+View at: `https://hub.docker.com/r/krto-chas/can-i-c-your-i-d`
 
 ## 💬 Slack Notifications
 
