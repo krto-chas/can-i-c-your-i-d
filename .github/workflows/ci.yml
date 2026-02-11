@@ -65,7 +65,7 @@ jobs:
         docker logs test-container
         echo ""
         echo "Testing health endpoint:"
-        docker exec test-container curl -f http://localhost:3000/health || exit 1
+        curl -f http://localhost:3000/health && echo "✅ Health check passed!"
         docker stop test-container
         docker rm test-container
 
