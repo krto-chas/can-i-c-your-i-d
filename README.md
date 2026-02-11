@@ -9,169 +9,113 @@ Live deployment: [https://your-render-app.onrender.com/](https://can-i-c-your-i-
 ## About
 
 Week 4 CI/CD Pipeline project with complete GitHub Actions automation.
-
-## Architecture
-
-```
-Code Push → GitHub Actions → Lint & Test (3 Node versions) → Docker Build & Test → Docker Hub Push → Deploy to Render → Slack Notification
-```
-
-## ✨ Features Implemented
-
-### Core Pipeline
-- ✅ Multi-version Node.js testing (18, 20, 22)
-- ✅ Linting with ESLint
-- ✅ Security audits with `npm audit`
-- ✅ Comprehensive test suite
-- ✅ Code coverage reporting
-- ✅ Docker image build & test
-- ✅ Automatic deployment to Render
-- ✅ Slack notifications
-
-### Express App with Endpoints
-- `GET /` - Main page
-- `GET /health` - Health check
-- `GET /status` - App status
-
-### GitHub Actions Features
-- 🚀 CI/CD Pipeline in `.github/workflows/ci.yml`:
-  - Install dependencies
-  - Run linting & security checks
-  - Run tests on multiple Node versions
-  - Generate code coverage reports
-  - Build Docker image
-  - Test Docker container
-  - Push to Docker Hub
-  - Deploy to Render
-  - Slack notifications (success & failure)
-
-## 🔐 Required GitHub Secrets
-
-To enable all features, set these secrets in GitHub repo Settings → Secrets and variables → Actions:
-
-### Deploy to Render
-- **Name:** `RENDER_DEPLOY_HOOK`
-- **Value:** Your Render deployment hook URL
-  - Get from: Render Dashboard → Your Service → Settings → Manual Deploy
-
-### Docker Hub (Optional, for Docker push)
-- **Name:** `DOCKER_USERNAME`
-- **Value:** Your Docker Hub username
-
-- **Name:** `DOCKER_PASSWORD`
-- **Value:** Your Docker Hub access token or password
-
-### Slack Notifications (Optional)
-- **Name:** `SLACK_WEBHOOK`
-- **Value:** Your Slack webhook URL
-  - Get from: Slack Workspace → Settings → Apps & Integrations → Incoming Webhooks
-
-## 🛠️ Setup Instructions
-
-### 1. Clone Repository
-```bash
-git clone <your-repo-url>
-cd forked-pipeline
-```
-
-### 2. Install Dependencies
-```bash
-npm install
-```
-
-### 3. Add GitHub Secrets
-Go to **Settings → Secrets and variables → Actions** and add the secrets above.
-
-### 4. Test Locally
-```bash
-npm test          # Run tests
-npm run lint      # Run linter
-npm run dev       # Start dev server
-docker-compose up # Start with Docker Compose
-```
-
-### 5. Push to Trigger Pipeline
-```bash
-git add .
-git commit -m "Add CI/CD pipeline"
-git push
-```
-
-Then watch your pipeline in the **Actions** tab! 🚀
-
 ## 📊 Pipeline Status
+# First Pipeline Challenge — CI/CD with GitHub Actions (Week 4)
 
-View your pipeline runs: [Actions Tab](https://github.com/krto-chas/can-i-c-your-i-d/actions)
+![CI/CD Pipeline](https://github.com/krto-chas/can-i-c-your-i-d/actions/workflows/ci.yml/badge.svg) ![Render](https://img.shields.io/badge/deploy-render-blue?logo=render)
 
-## 📈 Code Coverage
+Repository: https://github.com/krto-chas/can-i-c-your-i-d
 
-Coverage reports are generated and uploaded as artifacts in each workflow run.
-Download from the Actions tab → Workflow run → Artifacts section.
+Live deployment: https://can-i-c-your-i-d-stoffe.onrender.com/
 
-## 🐳 Docker Hub Integration
+Summary
+-------
+This project demonstrates a full CI/CD pipeline using GitHub Actions for a Node.js + Docker app. Today's work implements and verifies automated builds, tests, Docker image creation, optional Docker Hub push, Render deployment, and Slack notifications.
 
-Your Docker images are automatically pushed to Docker Hub when you push to `main`:
-- `krto-chas/can-i-c-your-i-d`
-- `krto-chas/can-i-c-your-i-d:COMMIT_SHA`
+Architecture
+------------
+Code Push → GitHub Actions → Lint & Test (matrix) → Docker Build & Test → Docker Hub Push (optional) → Deploy to Render → Slack notifications
 
-View at: `https://hub.docker.com/r/krto-chas/can-i-c-your-i-d`
+What I implemented today
+-----------------------
+- Multi-version Node.js testing (Node 18, 20, 22) using a matrix job
+- Linting with ESLint and a security audit (`npm audit`)
+- Test suite execution and code coverage (`c8`)
+- Docker image build and smoke-test (container start + /health check)
+- Docker Hub push (runs on `main` when `DOCKER_USERNAME`/`DOCKER_PASSWORD` secrets are set)
+- Automatic deploy to Render on `main` (uses `RENDER_DEPLOY_HOOK` secret)
+- Slack notifications for deploy success/failure (uses `SLACK_WEBHOOK` secret)
+- Small safeguards in workflow:
+  - Validation step to ensure `DOCKER_USERNAME` is set before tagging/pushing
+  - Debug step that prints the (masked) length of `DOCKER_USERNAME` to help detect hidden whitespace
 
-## 💬 Slack Notifications
+App endpoints
+-------------
+- `GET /` — Main page (static `public/index.html`)
+- `GET /health` — Health check JSON
+- `GET /status` — App status
 
-Get notified in Slack when:
-- ✅ Deployment succeeds
-- ❌ Pipeline fails
+Required GitHub secrets
+-----------------------
+Set these at: Settings → Secrets and variables → Actions
 
-## 🚀 Deployment
+- `DOCKER_USERNAME` — Docker Hub username (e.g. `krto-chas`)
+- `DOCKER_PASSWORD` — Docker Hub password or access token
+- `RENDER_DEPLOY_HOOK` — Render deploy hook URL (from your Render service settings)
+- `SLACK_WEBHOOK` — Incoming Webhook URL for Slack (optional)
 
-### Render
-The pipeline automatically deploys to Render on push to `main` using the deploy hook.
-
-Check deployment status at your Render dashboard.
-
-## 📚 Pipeline Jobs```bash
+How to run locally
+-------------------
+1. Install dependencies
+```bash
 npm install
-npm start
 ```
 
-Run tests:
-
+2. Run tests and lint
 ```bash
 npm test
+npm run lint
+npm run test:coverage
 ```
 
-Run with Docker Compose:
-
+3. Run locally
 ```bash
+npm start
+# or with docker-compose
 docker compose up --build
 ```
 
-## Gold checklist (what's added/required for gold level)
-
-- Proper linting with `eslint` (run `npm run lint`).
-- Comprehensive test suite with 10 tests and coverage (`npm test`, `npm run test:coverage`).
-- Dockerfile hardened to run as non-root user and includes a `HEALTHCHECK`.
-- `.dockerignore` and `.gitignore` added to reduce build context and avoid secrets.
-- `SECURITY.md`, `CONTRIBUTING.md` and `.env.example` added.
-
-Quick verification commands:
-
+How to trigger CI / deploy
+--------------------------
+1. Add your GitHub Secrets listed above.
+2. Push to `main` to trigger Docker push + Render deploy (if secrets are set).
+3. For quick testing, create an empty commit:
 ```bash
-npm install
-npm run lint
-npm test
+git commit --allow-empty -m "Trigger CI"
+git push
 ```
 
-## Team Sync Tips
+Notes & troubleshooting
+-----------------------
+- If you see `Error parsing reference: "***/..."` in the Docker tag/push step, it means the `DOCKER_USERNAME` expansion produced an invalid value (common causes: empty secret, extra whitespace or accidental placeholder `***`). Re-set the secret via GitHub settings and re-run the workflow.
+- If Slack messages don't appear, verify `SLACK_WEBHOOK` is an Incoming Webhook URL (starts with `https://hooks.slack.com/services/...`).
+- If Render doesn't deploy, verify `RENDER_DEPLOY_HOOK` is the correct hook URL from your Render service and that the secret is set.
 
-When several developers work in the same repo, sync often to avoid conflicts:
+Where to look for logs
+----------------------
+- GitHub Actions → the workflow run shows build/test/docker steps and logs.
+- Render dashboard → service → deploys shows incoming deploy events and logs.
 
+Useful commands
+---------------
 ```bash
-git fetch origin
-git checkout main
-git pull --ff-only origin main
-git checkout <your-branch>
-git rebase main
+# Trigger CI
+git commit --allow-empty -m "Trigger CI"
+git push
+
+# Test deploy hook manually (replace with your hook)
+curl -X POST 'https://api.render.com/deploy/srv-abc123/01a2b3c4'
 ```
 
-If rebase conflicts appear, resolve and continue before pushing.
+If you want, I can:
+- add a status badge for the Render URL (if desired),
+- add a README section with screenshots from the Actions run,
+- or clean up any remaining TODOs in the workflow.
+
+---
+Updated to reflect work done on: 2026-02-11
+
+Workflow docs
+-------------
+The GitHub Actions workflow that runs the pipeline is in [.github/workflows/ci.yml](.github/workflows/ci.yml).
+Check that file for job definitions, secrets required, and the Docker/Render deploy steps.
