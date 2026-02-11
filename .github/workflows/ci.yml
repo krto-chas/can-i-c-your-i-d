@@ -113,12 +113,11 @@ jobs:
         RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
     
     - name: Notify Slack on deployment
-      if: always()
-      uses: slackapi/slack-github-action@v1.24.0
-      with:
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        payload: |
-          {
+      if: always() && secrets.SLACK_WEBHOOK != ''
+      run: |
+        curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          -H 'Content-Type: application/json' \
+          -d '{
             "text": "🚀 Deployment Update",
             "blocks": [
               {
@@ -142,7 +141,7 @@ jobs:
                 ]
               }
             ]
-          }
+          }'
       continue-on-error: true
   
   # Job 4: Notify on failure
@@ -153,11 +152,11 @@ jobs:
     
     steps:
     - name: Send Slack failure notification
-      uses: slackapi/slack-github-action@v1.24.0
-      with:
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        payload: |
-          {
+      if: secrets.SLACK_WEBHOOK != ''
+      run: |
+        curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          -H 'Content-Type: application/json' \
+          -d '{
             "text": "❌ Pipeline Failed",
             "blocks": [
               {
@@ -181,5 +180,5 @@ jobs:
                 ]
               }
             ]
-          }
+          }'
       continue-on-error: true
