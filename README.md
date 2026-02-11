@@ -1,8 +1,8 @@
 # First Pipeline Challenge - Silver & Gold Edition 🥈🥇
 
-![CI/CD Pipeline](https://github.com/krto-chas/forked-pipeline/actions/workflows/ci.yml/badge.svg)
+![CI/CD Pipeline](https://github.com/krto-chas/can-i-c-your-i-d//actions/workflows/ci.yml/badge.svg)
 
-Workflow: [CI/CD Pipeline](https://github.com/krto-chas/forked-pipeline/actions/workflows/ci.yml)
+Workflow: [CI/CD Pipeline](https://github.com/krto-chas/can-i-c-your-i-d//actions/workflows/ci.yml)
 
 Live deployment: [https://your-render-app.onrender.com/](https://can-i-c-your-i-d-stoffe.onrender.com/)
 
