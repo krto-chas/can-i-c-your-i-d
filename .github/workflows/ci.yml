@@ -113,7 +113,7 @@ jobs:
         RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
     
     - name: Notify Slack on deployment
-      if: always() && secrets.SLACK_WEBHOOK != ''
+      if: always()
       run: |
         curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
           -H 'Content-Type: application/json' \
@@ -152,7 +152,6 @@ jobs:
     
     steps:
     - name: Send Slack failure notification
-      if: secrets.SLACK_WEBHOOK != ''
       run: |
         curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
           -H 'Content-Type: application/json' \
