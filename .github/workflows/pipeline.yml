@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  DOCKER_IMAGE: first-pipeline
+  DOCKER_IMAGE: can-i-c-your-i-d
 
 permissions:
   contents: read

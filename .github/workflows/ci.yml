@@ -61,14 +61,14 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Build Docker image
-      run: docker build -t first-pipeline:${{ github.sha }} -t first-pipeline:latest .
+      run: docker build -t can-i-c-your-i-d:${{ github.sha }} -t can-i-c-your-i-d:latest .
     
     - name: List Docker images
       run: docker images
     
     - name: Test Docker image runs
       run: |
-        docker run -d --name test-container -p 3000:3000 first-pipeline:${{ github.sha }}
+        docker run -d --name test-container -p 3000:3000 can-i-c-your-i-d:${{ github.sha }}
         sleep 5
         echo "Container is running:"
         docker ps
@@ -92,10 +92,10 @@ jobs:
     - name: Push to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
-        docker tag first-pipeline:latest ${{ secrets.DOCKER_USERNAME }}/first-pipeline:latest
-        docker tag first-pipeline:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/first-pipeline:${{ github.sha }}
-        docker push ${{ secrets.DOCKER_USERNAME }}/first-pipeline:latest
-        docker push ${{ secrets.DOCKER_USERNAME }}/first-pipeline:${{ github.sha }}
+        docker tag can-i-c-your-i-d:latest ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:latest
+        docker tag can-i-c-your-i-d:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:${{ github.sha }}
+        docker push ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:${{ github.sha }}
       continue-on-error: true
 
   # Job 3: Deploy to Render (only on main branch)
