@@ -116,7 +116,7 @@ jobs:
       if: always()
       uses: slackapi/slack-github-action@v1.24.0
       with:
-        webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         payload: |
           {
             "text": "🚀 Deployment Update",
@@ -155,7 +155,7 @@ jobs:
     - name: Send Slack failure notification
       uses: slackapi/slack-github-action@v1.24.0
       with:
-        webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         payload: |
           {
             "text": "❌ Pipeline Failed",
