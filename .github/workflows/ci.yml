@@ -87,6 +87,11 @@ jobs:
           echo "ERROR: DOCKER_USERNAME secret is not set or invalid. Set DOCKER_USERNAME in repo secrets."
           exit 1
         fi
+
+    - name: Debug DOCKER_USERNAME length
+      run: |
+        len=$(printf '%s' "${{ secrets.DOCKER_USERNAME }}" | wc -c)
+        echo "DOCKER_USERNAME length: $len"
     
     - name: Login to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -99,7 +104,7 @@ jobs:
     - name: Push to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
-        docker tag can-i-c-your-i-d:latest ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:latest
+        docker tag can-i-c-your-i-d:latest ${{ secrets.DOCKER_USERNAME }}
         docker tag can-i-c-your-i-d:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:${{ github.sha }}
         docker push ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:latest
         docker push ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:${{ github.sha }}
