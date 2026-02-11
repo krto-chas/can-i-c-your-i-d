@@ -104,7 +104,7 @@ jobs:
     - name: Push to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
-        docker tag can-i-c-your-i-d:latest ${{ secrets.DOCKER_USERNAME }}
+        docker tag can-i-c-your-i-d:latest ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:latest
         docker tag can-i-c-your-i-d:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:${{ github.sha }}
         docker push ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:latest
         docker push ${{ secrets.DOCKER_USERNAME }}/can-i-c-your-i-d:${{ github.sha }}
