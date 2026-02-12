@@ -1,21 +1,20 @@
-FROM node:18.16-alpine
+FROM node:18-alpine
 
 # Create app directory
 WORKDIR /app
 
-# Upgrade system packages and pin vulnerable packages to fixed versions
-# CVE-2022-48174: busybox/ssl_client 1.36.1-r0 → 1.36.1-r1+ (CRITICAL)
-# CVE-2025-26519: musl-utils 1.2.4-r0 → 1.2.4-r3 (HIGH)
-# CVE-2026-24842: tar 6.1.13 → 7.5.7+ (arbitrary file creation) (HIGH)
-# CVE-2026-23950: tar 6.1.13 → 7.5.4+ (arbitrary file overwrite) (HIGH)
-# CVE-2024-28863: tar 6.1.13 → 6.2.1+ (folder depth DoS) - FIXED (7.5.7 > 6.2.1)
-# CVE-2022-25883: semver 7.3.8 → 7.5.2+ (regex DoS) - FIXED (7.7.4 > 7.5.2)
-# CVE-2024-29415: ip package - NO FIX AVAILABLE YET (not in Node.js dependencies)
-RUN apk update && apk upgrade && apk add --no-cache musl-utils>=1.2.4-r3
+# Upgrade system packages to patch OS-level CVEs
+RUN apk update && apk upgrade --no-cache
 
-# Install dependencies as non-root where possible
+# Upgrade npm's own bundled packages to fix vulnerabilities in global npm
+# CVE-2026-24842, CVE-2026-23950, CVE-2026-23745: tar (HIGH)
+# CVE-2022-25883: semver (HIGH)
+# CVE-2024-29415: ip - NO FIX AVAILABLE YET
+RUN npm install -g npm@latest
+
+# Install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copy source
 COPY . .
