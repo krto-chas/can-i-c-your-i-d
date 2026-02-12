@@ -157,7 +157,7 @@
       const cls = depth === 0 ? 'ev-group ev-root' : 'ev-group ev-nested';
       return '<div class="' + cls + '">' +
         Object.entries(obj).map(([key, val]) => {
-          const isNested = typeof val === 'object' && val !== null && !Array.isArray(val);
+          const isNested = typeof val === 'object' && val !== null;
           if (isNested) {
             return '<div class="ev-section">' +
               '<div class="ev-section-title">' + esc(key) + '</div>' +

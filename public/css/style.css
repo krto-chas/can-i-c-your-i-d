@@ -304,6 +304,7 @@ a:hover { border-color: var(--accent); color: var(--accent); }
   font-size: 13px;
   white-space: pre;
   color: var(--ink);
+  text-align: center;
 }
 
 /* ── Docs rendering (README) ── */
