@@ -68,12 +68,22 @@ Code Push → GitHub Actions
 - **Non-root container** - Docker image runs as `node` user
 - **npm removed from production image** - Reduces attack surface by removing npm and its bundled dependencies after install
 
-### Docker
-- Alpine-based multi-stage build
-- System packages upgraded at build time (`apk upgrade`)
-- npm removed after dependency installation (smaller image, fewer vulnerabilities)
+### Docker (Multi-Stage Build)
+
+The Dockerfile uses a two-stage build for security and size optimization:
+
+```
+Stage 1 (build):  node:18-alpine + npm  →  installs dependencies
+Stage 2 (production):  node:18-alpine only  →  copies node_modules, removes npm
+```
+
+- **Stage 1** has full npm available for `npm ci --omit=dev`
+- **Stage 2** copies only `node_modules` from Stage 1, then removes npm entirely
+- System packages upgraded at build time (`apk upgrade`) to patch OS-level CVEs
 - Health check built into container (`wget` to `/health`)
 - Runs as non-root `node` user
+- Final image contains only: node runtime + app code + production dependencies
+- To rebuild/reinstall: `docker build -t can-i-c-your-i-d .` (npm is always available at build time)
 
 ## CI/CD Pipeline (ci.yml)
 
