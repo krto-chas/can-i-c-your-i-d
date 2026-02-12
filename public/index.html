@@ -43,6 +43,23 @@
         </article>
       </section>
 
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-label">terminal</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-output" id="terminal-output"></div>
+          <div class="terminal-input-row">
+            <span class="terminal-prompt">$</span>
+            <input type="text" id="terminal-input" class="terminal-input"
+              placeholder="try /secret, /health, /coffee ..." autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+      </div>
+
       <footer class="footer">
         <div>"Move fast and patch things."</div>
         <div class="links" id="endpoint-links">
@@ -239,6 +256,81 @@
           '<p class="muted">Could not load README. <a href="https://github.com/krto-chas/can-i-c-your-i-d/blob/main/README.md" target="_blank">Open on GitHub</a></p>';
       }
     }
+
+    // ── Terminal ──
+    const termInput = document.getElementById('terminal-input');
+    const termOutput = document.getElementById('terminal-output');
+
+    const localCommands = {
+      help: () => 'Available commands: /health, /status, /metrics, /version, /ready, /live, help, clear\nThere might also be some hidden ones...',
+      clear: () => { termOutput.innerHTML = ''; return null; },
+    };
+
+    termInput.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      const raw = termInput.value.trim();
+      if (!raw) return;
+      termInput.value = '';
+
+      // Echo command
+      appendLine('$ ' + raw, 'term-cmd');
+
+      // Local commands
+      if (localCommands[raw]) {
+        const result = localCommands[raw]();
+        if (result) appendLine(result, 'term-info');
+        return;
+      }
+
+      // Ensure path starts with /
+      const endpoint = raw.startsWith('/') ? raw : '/' + raw;
+
+      // Only allow local paths (no protocol/domain)
+      if (endpoint.includes('://') || endpoint.includes('..')) {
+        appendLine('Error: only local endpoints allowed', 'term-err');
+        return;
+      }
+
+      try {
+        const res = await fetch(endpoint);
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = null; }
+
+        if (data) {
+          // Also open in side panel
+          openPanel(endpoint);
+          activeEndpoint = endpoint;
+          document.getElementById('side-body').className = 'side-body side-body--endpoint';
+          document.getElementById('side-body').innerHTML = renderValue(data, 0);
+
+          // Show compact summary in terminal
+          appendLine(res.status + ' OK', 'term-ok');
+          const preview = JSON.stringify(data, null, 2).split('\n').slice(0, 6).join('\n');
+          appendLine(preview + (JSON.stringify(data, null, 2).split('\n').length > 6 ? '\n  ...' : ''), 'term-json');
+        } else {
+          appendLine(res.status + ' ' + text.substring(0, 120), 'term-info');
+        }
+      } catch (err) {
+        appendLine('Error: ' + err.message, 'term-err');
+      }
+
+      // Auto-scroll
+      termOutput.scrollTop = termOutput.scrollHeight;
+    });
+
+    function appendLine(text, cls) {
+      const line = document.createElement('div');
+      line.className = 'term-line ' + (cls || '');
+      line.textContent = text;
+      termOutput.appendChild(line);
+      termOutput.scrollTop = termOutput.scrollHeight;
+    }
+
+    // Focus terminal on click
+    document.querySelector('.terminal-body').addEventListener('click', () => {
+      termInput.focus();
+    });
 
     // ── Init ──
     loadEndpoints();

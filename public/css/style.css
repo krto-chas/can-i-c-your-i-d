@@ -110,6 +110,97 @@ h1 {
 .warn { background: rgba(255, 204, 102, 0.2); color: var(--warn); }
 .danger { background: rgba(255, 95, 122, 0.2); color: var(--danger); }
 
+/* ── Terminal ── */
+.terminal {
+  margin: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--line);
+}
+
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.terminal-dot.red { background: #ff5f56; }
+.terminal-dot.yellow { background: #ffbd2e; }
+.terminal-dot.green { background: #27c93f; }
+
+.terminal-label {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.terminal-body {
+  padding: 12px 14px;
+  cursor: text;
+  min-height: 48px;
+}
+
+.terminal-output {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+}
+
+.terminal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-prompt {
+  color: var(--accent);
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.terminal-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--ink);
+  font-family: monospace;
+  font-size: 14px;
+  caret-color: var(--accent);
+}
+
+.terminal-input::placeholder {
+  color: rgba(255,255,255,0.2);
+  font-style: italic;
+}
+
+.term-line {
+  font-family: monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.term-cmd { color: var(--muted); }
+.term-ok { color: var(--accent); font-weight: 700; }
+.term-err { color: var(--danger); }
+.term-info { color: var(--muted); }
+.term-json { color: var(--warn); font-size: 12px; opacity: 0.8; }
+
 .footer {
   border-top: 1px solid var(--line);
   padding: 16px 20px 20px;
