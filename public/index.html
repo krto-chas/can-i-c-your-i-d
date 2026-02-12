@@ -52,34 +52,34 @@
       </footer>
     </main>
 
-    <aside class="docs-panel" id="docs-panel">
-      <div class="docs-header">
-        <h2>Documentation</h2>
-        <a href="#" id="docs-close" class="docs-close-btn">&times;</a>
+    <aside class="side-panel" id="side-panel">
+      <div class="side-header">
+        <h2 id="side-title">Panel</h2>
+        <a href="#" id="side-close" class="side-close-btn">&times;</a>
       </div>
-      <div class="docs-body" id="docs-body">
-        <p class="muted">Loading README...</p>
-      </div>
+      <div class="side-body" id="side-body"></div>
     </aside>
   </div>
 
   <script>
+    // ── Endpoint links ──
     async function loadEndpoints() {
       try {
         const res = await fetch('/api/endpoints');
         const endpoints = await res.json();
         const container = document.getElementById('endpoint-links');
         const links = endpoints
-          .filter(e => e.method === 'GET' && e.path !== '/')
-          .map(e => `<a href="${e.path}" title="${e.method}">${e.path}</a>`)
+          .filter(e => e.method === 'GET' && e.path !== '/' && !e.path.startsWith('/api/'))
+          .map(e => `<a href="#" onclick="openEndpoint('${e.path}', event)">${e.path}</a>`)
           .join('');
         container.innerHTML = links +
-          '<a href="#" onclick="toggleDocs(event)">📖 Docs</a>';
+          '<a href="#" onclick="openDocs(event)">📖 Docs</a>';
       } catch {
         document.getElementById('endpoint-links').innerHTML = '<span>Could not load endpoints</span>';
       }
     }
 
+    // ── Live metrics bar ──
     async function loadMetrics() {
       try {
         const res = await fetch('/metrics');
@@ -91,39 +91,158 @@
       }
     }
 
-    let docsLoaded = false;
+    // ── Side panel helpers ──
+    function openPanel(title) {
+      document.getElementById('side-title').textContent = title;
+      document.getElementById('split-container').classList.add('panel-open');
+    }
 
-    async function toggleDocs(e) {
+    function closePanel() {
+      document.getElementById('split-container').classList.remove('panel-open');
+    }
+
+    document.getElementById('side-close').addEventListener('click', (e) => {
       e.preventDefault();
-      const container = document.getElementById('split-container');
-      const isOpen = container.classList.toggle('docs-open');
+      closePanel();
+    });
 
-      if (isOpen && !docsLoaded) {
-        docsLoaded = true;
-        try {
-          const res = await fetch(
-            'https://api.github.com/repos/krto-chas/can-i-c-your-i-d/readme',
-            { headers: { Accept: 'application/vnd.github.html+json' } }
-          );
-          if (!res.ok) throw new Error('Failed to fetch');
-          const html = await res.text();
-          document.getElementById('docs-body').innerHTML = html;
-        } catch {
-          document.getElementById('docs-body').innerHTML =
-            '<p class="muted">Could not load README. <a href="https://github.com/krto-chas/can-i-c-your-i-d/blob/main/README.md" target="_blank">Open on GitHub</a></p>';
-        }
+    // ── Render a value as clean HTML (recursive, no brackets) ──
+    function renderValue(val, depth) {
+      depth = depth || 0;
+      if (val === null || val === undefined) {
+        return '<span class="ev-null">null</span>';
+      }
+      if (Array.isArray(val)) {
+        // Render array items as a list
+        return '<div class="ev-list">' +
+          val.map(item => {
+            if (typeof item === 'object' && item !== null) {
+              return '<div class="ev-list-item">' + renderObject(item, depth + 1) + '</div>';
+            }
+            return '<div class="ev-list-item">' + renderScalar(item) + '</div>';
+          }).join('') +
+          '</div>';
+      }
+      if (typeof val === 'object') {
+        return renderObject(val, depth);
+      }
+      return renderScalar(val);
+    }
+
+    function renderScalar(val) {
+      if (typeof val === 'boolean') {
+        return val
+          ? '<span class="ev-bool ev-true">true</span>'
+          : '<span class="ev-bool ev-false">false</span>';
+      }
+      if (typeof val === 'number') {
+        return '<span class="ev-num">' + val + '</span>';
+      }
+      // String
+      const s = String(val);
+      // Detect "123ms" / "45s" style metric values
+      if (/^\d+m?s$/.test(s)) {
+        return '<span class="ev-metric">' + esc(s) + '</span>';
+      }
+      // Detect ISO timestamps
+      if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+        const d = new Date(s);
+        return '<span class="ev-time">' + d.toLocaleString() + '</span>';
+      }
+      return '<span class="ev-str">' + esc(s) + '</span>';
+    }
+
+    function renderObject(obj, depth) {
+      depth = depth || 0;
+      const cls = depth === 0 ? 'ev-group ev-root' : 'ev-group ev-nested';
+      return '<div class="' + cls + '">' +
+        Object.entries(obj).map(([key, val]) => {
+          const isNested = typeof val === 'object' && val !== null && !Array.isArray(val);
+          if (isNested) {
+            return '<div class="ev-section">' +
+              '<div class="ev-section-title">' + esc(key) + '</div>' +
+              renderValue(val, depth + 1) +
+              '</div>';
+          }
+          return '<div class="ev-row">' +
+            '<span class="ev-key">' + esc(key) + '</span>' +
+            '<span class="ev-val">' + renderValue(val, depth + 1) + '</span>' +
+            '</div>';
+        }).join('') +
+        '</div>';
+    }
+
+    function esc(s) {
+      const el = document.createElement('span');
+      el.textContent = s;
+      return el.innerHTML;
+    }
+
+    // ── Open endpoint in side panel ──
+    let activeEndpoint = null;
+    let refreshInterval = null;
+
+    async function openEndpoint(path, e) {
+      e.preventDefault();
+      openPanel(path);
+      activeEndpoint = path;
+      document.getElementById('side-body').className = 'side-body side-body--endpoint';
+      await fetchAndRenderEndpoint(path);
+
+      // Auto-refresh for live endpoints
+      clearInterval(refreshInterval);
+      if (path === '/metrics' || path === '/health') {
+        refreshInterval = setInterval(() => {
+          if (activeEndpoint === path) fetchAndRenderEndpoint(path);
+        }, 3000);
       }
     }
 
-    document.getElementById('docs-close').addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('split-container').classList.remove('docs-open');
-    });
+    async function fetchAndRenderEndpoint(path) {
+      try {
+        const res = await fetch(path);
+        const data = await res.json();
+        document.getElementById('side-body').innerHTML = renderValue(data, 0);
+      } catch {
+        document.getElementById('side-body').innerHTML =
+          '<p class="muted">Could not load ' + path + '</p>';
+      }
+    }
 
+    // ── Open docs (README) in side panel ──
+    let docsHtml = null;
+
+    async function openDocs(e) {
+      e.preventDefault();
+      activeEndpoint = null;
+      clearInterval(refreshInterval);
+      openPanel('Documentation');
+      document.getElementById('side-body').className = 'side-body side-body--docs';
+
+      if (docsHtml) {
+        document.getElementById('side-body').innerHTML = docsHtml;
+        return;
+      }
+
+      document.getElementById('side-body').innerHTML = '<p class="muted">Loading README...</p>';
+      try {
+        const res = await fetch(
+          'https://api.github.com/repos/krto-chas/can-i-c-your-i-d/readme',
+          { headers: { Accept: 'application/vnd.github.html+json' } }
+        );
+        if (!res.ok) throw new Error('Failed to fetch');
+        docsHtml = await res.text();
+        document.getElementById('side-body').innerHTML = docsHtml;
+      } catch {
+        document.getElementById('side-body').innerHTML =
+          '<p class="muted">Could not load README. <a href="https://github.com/krto-chas/can-i-c-your-i-d/blob/main/README.md" target="_blank">Open on GitHub</a></p>';
+      }
+    }
+
+    // ── Init ──
     loadEndpoints();
     loadMetrics();
     setInterval(loadMetrics, 5000);
   </script>
 </body>
 </html>
-
