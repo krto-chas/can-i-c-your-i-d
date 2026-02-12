@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   # Job 1: Lint and test code with coverage
   test:
@@ -81,6 +85,48 @@ jobs:
         docker stop test-container
         docker rm test-container
     
+    - name: Trivy - Scan Docker image
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: 'can-i-c-your-i-d:${{ github.sha }}'
+        format: 'sarif'
+        output: 'trivy-image.sarif'
+        severity: 'CRITICAL,HIGH'
+        exit-code: '0'
+
+    - name: Trivy - Scan filesystem (npm packages)
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-fs.sarif'
+        severity: 'CRITICAL,HIGH'
+        exit-code: '0'
+
+    - name: Trivy - Scan for secrets
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        scanners: 'secret'
+        format: 'table'
+        exit-code: '0'
+
+    - name: Upload Trivy image scan to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-image.sarif'
+        category: 'trivy-image'
+
+    - name: Upload Trivy filesystem scan to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-fs.sarif'
+        category: 'trivy-filesystem'
+
     - name: Login to Docker Hub
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: docker/login-action@v3
