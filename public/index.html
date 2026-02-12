@@ -69,7 +69,8 @@
         const endpoints = await res.json();
         const container = document.getElementById('endpoint-links');
         const links = endpoints
-          .filter(e => e.method === 'GET' && e.path !== '/' && !e.path.startsWith('/api/'))
+          .filter(e => e.method === 'GET' && e.path !== '/' && !e.path.startsWith('/api/')
+            && !['/secret', '/konami', '/coffee'].includes(e.path))
           .map(e => `<a href="#" onclick="openEndpoint('${e.path}', event)">${e.path}</a>`)
           .join('');
         container.innerHTML = links +

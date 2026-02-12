@@ -15,8 +15,14 @@ const metrics = {
 // Middleware för JSON parsing
 app.use(express.json());
 
-// Serve static site content
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static site content (no-cache so Render always shows latest version)
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('.css') || filePath.endsWith('.js')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 // Pretty JSON middleware - renders HTML for browsers, raw JSON for API clients
 app.use((req, res, next) => {
@@ -214,6 +220,53 @@ app.get('/version', (req, res) => {
     build: process.env.BUILD_NUMBER || 'local',
     commit: process.env.COMMIT_SHA || 'unknown',
     runningSince: new Date(startTime).toISOString()
+  });
+});
+
+// Easter egg endpoints
+app.get('/secret', (req, res) => {
+  res.json({
+    message: 'You found the secret! Here\'s a cookie for your troubles',
+    reward: [
+      '  _____  ',
+      ' /     \\ ',
+      '| () () |',
+      '|  ___  |',
+      '|_______|',
+      '',
+      '    🍪    '
+    ],
+    hint: 'There are more secrets... try thinking like a gamer from the 80s'
+  });
+});
+
+app.get('/konami', (req, res) => {
+  res.json({
+    code: '↑ ↑ ↓ ↓ ← → ← → B A',
+    message: 'CHEAT MODE ACTIVATED! +30 lives',
+    unlocked: [
+      '  ★ ★ ★ ★ ★  ',
+      '  KONAMI CODE  ',
+      '  ★ ★ ★ ★ ★  '
+    ],
+    trivia: 'The Konami Code first appeared in Gradius (1986) for the NES'
+  });
+});
+
+app.get('/coffee', (req, res) => {
+  res.status(418).json({
+    error: 'I\'m a teapot',
+    statusCode: 418,
+    coffee: [
+      '       ( (   ',
+      '        ) )  ',
+      '      ....   ',
+      '      |  |]  ',
+      '      \\  /   ',
+      '       `\'    '
+    ],
+    message: 'HTTP 418 - This server refuses to brew coffee because it is, permanently, a teapot.',
+    rfc: 'RFC 2324'
   });
 });
 
