@@ -10,7 +10,7 @@ RUN apk update && apk upgrade --no-cache
 # CVE-2026-24842, CVE-2026-23950, CVE-2026-23745: tar (HIGH)
 # CVE-2022-25883: semver (HIGH)
 # CVE-2024-29415: ip - NO FIX AVAILABLE YET
-RUN npm install -g npm@latest
+RUN npm install -g npm@10
 
 # Install dependencies
 COPY package*.json ./
