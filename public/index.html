@@ -7,52 +7,123 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main class="panel">
-    <section class="header">
-      <div>
-        <div class="badge">I-C-your-I-D Patrol</div>
-        <h1>I see your ID.<br>And your insecure dependencies.</h1>
-        <p class="subtitle">First Pipeline Challenge - A mildly paranoid DevSecOps dashboard with severe trust issues.</p>
+  <div class="split-container" id="split-container">
+    <main class="panel">
+      <section class="header">
+        <div>
+          <div class="badge">I-C-your-I-D Patrol</div>
+          <h1>I see your ID.<br>And your insecure dependencies.</h1>
+          <p class="subtitle">First Pipeline Challenge - A mildly paranoid DevSecOps dashboard with severe trust issues.</p>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>CI</h2>
+          <p>Builds run faster than rumors in standup. Tests execute before coffee is cold.</p>
+          <span class="state ok">Pipeline Green-ish</span>
+        </article>
+
+        <article class="card">
+          <h2>CD</h2>
+          <p>Deploys on merge like clockwork. If it breaks in prod, we call it "monitoring data".</p>
+          <span class="state warn">Webhook Armed</span>
+        </article>
+
+        <article class="card">
+          <h2>DevSecOps</h2>
+          <p>Trivy scans every image. Vulnerabilities get named and shamed in broad daylight.</p>
+          <span class="state danger">Trust But Verify</span>
+        </article>
+
+        <article class="card">
+          <h2>ID Checkpoint</h2>
+          <p>"I-C-your-I-D" means no anonymous commits, no mystery containers, no mercy.</p>
+          <span class="state ok">Identity Confirmed</span>
+        </article>
+      </section>
+
+      <footer class="footer">
+        <div>"Move fast and patch things."</div>
+        <div class="links" id="endpoint-links">
+          <span>Loading endpoints...</span>
+        </div>
+        <div class="metrics-bar" id="metrics-bar"></div>
+      </footer>
+    </main>
+
+    <aside class="docs-panel" id="docs-panel">
+      <div class="docs-header">
+        <h2>Documentation</h2>
+        <a href="#" id="docs-close" class="docs-close-btn">&times;</a>
       </div>
-    </section>
-
-    <section class="grid">
-      <article class="card">
-        <h2>CI</h2>
-        <p>Builds run faster than rumors in standup. Tests execute before coffee is cold.</p>
-        <span class="state ok">Pipeline Green-ish</span>
-      </article>
-
-      <article class="card">
-        <h2>CD</h2>
-        <p>Deploys on merge like clockwork. If it breaks in prod, we call it "monitoring data".</p>
-        <span class="state warn">Webhook Armed</span>
-      </article>
-
-      <article class="card">
-        <h2>DevSecOps</h2>
-        <p>Trivy scans every image. Vulnerabilities get named and shamed in broad daylight.</p>
-        <span class="state danger">Trust But Verify</span>
-      </article>
-
-      <article class="card">
-        <h2>ID Checkpoint</h2>
-        <p>"I-C-your-I-D" means no anonymous commits, no mystery containers, no mercy.</p>
-        <span class="state ok">Identity Confirmed</span>
-      </article>
-    </section>
-
-    <footer class="footer">
-      <div>"Move fast and patch things."</div>
-      <div class="links">
-        <a href="/health">/health</a>
-        <a href="/status">/status</a>
-        <a href="/ready">/ready</a>
-        <a href="/version">/version</a>
-        <a href="https://github.com/krto-chas/can-i-c-your-i-d/blob/main/README.md" target="_blank">📖 Documentation</a>
+      <div class="docs-body" id="docs-body">
+        <p class="muted">Loading README...</p>
       </div>
-    </footer>
-  </main>
+    </aside>
+  </div>
+
+  <script>
+    async function loadEndpoints() {
+      try {
+        const res = await fetch('/api/endpoints');
+        const endpoints = await res.json();
+        const container = document.getElementById('endpoint-links');
+        const links = endpoints
+          .filter(e => e.method === 'GET' && e.path !== '/')
+          .map(e => `<a href="${e.path}" title="${e.method}">${e.path}</a>`)
+          .join('');
+        container.innerHTML = links +
+          '<a href="#" onclick="toggleDocs(event)">📖 Docs</a>';
+      } catch {
+        document.getElementById('endpoint-links').innerHTML = '<span>Could not load endpoints</span>';
+      }
+    }
+
+    async function loadMetrics() {
+      try {
+        const res = await fetch('/metrics');
+        const m = await res.json();
+        document.getElementById('metrics-bar').innerHTML =
+          `Requests: ${m.totalRequests} · Avg: ${m.responseTime.avg} · Uptime: ${m.uptime}`;
+      } catch {
+        document.getElementById('metrics-bar').textContent = '';
+      }
+    }
+
+    let docsLoaded = false;
+
+    async function toggleDocs(e) {
+      e.preventDefault();
+      const container = document.getElementById('split-container');
+      const isOpen = container.classList.toggle('docs-open');
+
+      if (isOpen && !docsLoaded) {
+        docsLoaded = true;
+        try {
+          const res = await fetch(
+            'https://api.github.com/repos/krto-chas/can-i-c-your-i-d/readme',
+            { headers: { Accept: 'application/vnd.github.html+json' } }
+          );
+          if (!res.ok) throw new Error('Failed to fetch');
+          const html = await res.text();
+          document.getElementById('docs-body').innerHTML = html;
+        } catch {
+          document.getElementById('docs-body').innerHTML =
+            '<p class="muted">Could not load README. <a href="https://github.com/krto-chas/can-i-c-your-i-d/blob/main/README.md" target="_blank">Open on GitHub</a></p>';
+        }
+      }
+    }
+
+    document.getElementById('docs-close').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('split-container').classList.remove('docs-open');
+    });
+
+    loadEndpoints();
+    loadMetrics();
+    setInterval(loadMetrics, 5000);
+  </script>
 </body>
 </html>
 

@@ -18,6 +18,100 @@ app.use(express.json());
 // Serve static site content
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Pretty JSON middleware - renders HTML for browsers, raw JSON for API clients
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = (data) => {
+    if (req.headers.accept && req.headers.accept.includes('text/html') && req.path !== '/api/endpoints') {
+      const title = req.path.replace('/', '').toUpperCase() || 'Response';
+      const statusColor = res.statusCode >= 400 ? '#ff5f7a' : '#00d1a6';
+      const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title} | I-C-your-I-D</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: #ecf4f8;
+      background: radial-gradient(circle at 10% 10%, #13314a 0%, transparent 30%),
+                  radial-gradient(circle at 90% 20%, #183a2f 0%, transparent 25%),
+                  linear-gradient(140deg, #07131b, #0f1f2c);
+      min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    }
+    .wrap {
+      width: min(720px, 100%); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; background: rgba(8,17,24,0.72);
+      backdrop-filter: blur(4px); box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+    .top {
+      padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.12);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    .top h1 { margin: 0; font-size: 22px; }
+    .badge {
+      border: 1px solid ${statusColor}; color: ${statusColor};
+      border-radius: 999px; padding: 4px 12px; font-size: 12px;
+      background: ${statusColor}22; font-weight: 700;
+    }
+    pre {
+      margin: 0; padding: 24px; overflow-x: auto;
+      font-size: 14px; line-height: 1.6; color: #b7c7d1;
+    }
+    .key { color: #00d1a6; }
+    .str { color: #ffcc66; }
+    .num { color: #7ec8e3; }
+    .bool { color: #ff5f7a; }
+    .null { color: #666; }
+    .bar {
+      padding: 14px 24px; border-top: 1px solid rgba(255,255,255,0.12);
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    a {
+      color: #ecf4f8; text-decoration: none; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px; padding: 6px 14px; font-size: 13px;
+      background: rgba(255,255,255,0.03);
+    }
+    a:hover { border-color: #00d1a6; color: #00d1a6; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1>${req.method} ${req.path}</h1>
+      <span class="badge">${res.statusCode}</span>
+    </div>
+    <pre>${syntaxHighlight(JSON.stringify(data, null, 2))}</pre>
+    <div class="bar">
+      <a href="/">&#8592; Dashboard</a>
+      <a href="/health">/health</a>
+      <a href="/metrics">/metrics</a>
+      <a href="/status">/status</a>
+      <a href="/version">/version</a>
+    </div>
+  </div>
+</body>
+</html>`;
+      return res.type('html').send(html);
+    }
+    return originalJson(data);
+  };
+  next();
+});
+
+function syntaxHighlight(json) {
+  return json
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"([^"]+)"(?=\s*:)/g, '<span class="key">"$1"</span>')
+    .replace(/:\s*"([^"]*)"/g, ': <span class="str">"$1"</span>')
+    .replace(/:\s*(\d+)/g, ': <span class="num">$1</span>')
+    .replace(/:\s*(true|false)/g, ': <span class="bool">$1</span>')
+    .replace(/:\s*(null)/g, ': <span class="null">$1</span>');
+}
+
 // Request logging & metrics middleware
 app.use((req, res, next) => {
   const start = Date.now();
@@ -143,6 +237,18 @@ app.post('/api/echo', (req, res) => {
     echo: message,
     receivedAt: new Date().toISOString()
   });
+});
+
+// API endpoint - list all registered routes dynamically
+app.get('/api/endpoints', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      const methods = Object.keys(middleware.route.methods).map(m => m.toUpperCase());
+      routes.push({ method: methods.join(', '), path: middleware.route.path });
+    }
+  });
+  res.json(routes);
 });
 
 // 404 handler
