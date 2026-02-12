@@ -5,14 +5,35 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const startTime = Date.now();
 
+// Performance metrics
+const metrics = {
+  totalRequests: 0,
+  responseTimes: [],
+  statusCodes: {},
+};
+
 // Middleware för JSON parsing
 app.use(express.json());
 
 // Serve static site content
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Request logging middleware
+// Request logging & metrics middleware
 app.use((req, res, next) => {
+  const start = Date.now();
+  metrics.totalRequests++;
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    metrics.responseTimes.push(duration);
+    // Keep only last 1000 entries
+    if (metrics.responseTimes.length > 1000) {
+      metrics.responseTimes.shift();
+    }
+    const code = res.statusCode;
+    metrics.statusCodes[code] = (metrics.statusCodes[code] || 0) + 1;
+  });
+
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
@@ -34,19 +55,44 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Metrics endpoint - performance data
+app.get('/metrics', (req, res) => {
+  const times = metrics.responseTimes;
+  const avg = times.length > 0
+    ? Math.round(times.reduce((a, b) => a + b, 0) / times.length)
+    : 0;
+  const max = times.length > 0 ? Math.max(...times) : 0;
+  const min = times.length > 0 ? Math.min(...times) : 0;
+
+  res.json({
+    totalRequests: metrics.totalRequests,
+    uptime: `${Math.floor(process.uptime())}s`,
+    responseTime: {
+      avg: `${avg}ms`,
+      min: `${min}ms`,
+      max: `${max}ms`,
+      samples: times.length
+    },
+    statusCodes: metrics.statusCodes,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Status endpoint - with secret easter egg
 app.get('/status', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    secret: `You found the secret! Well done!
-
-         ,;;;, ,;;;,
-        ;;;' ';' ';;;
-        ;;;       ;;;
-         ';;,   ,;;'
-           ';;,;;'
-             ';'`
+    secret: [
+      'You found the secret! Well done!',
+      '',
+      '     ,;;;, ,;;;,',
+      "    ;;;' ';' ';;;",
+      '    ;;;       ;;;',
+      "     ';;,   ,;;'",
+      "       ';;,;;'",
+      "         ';'"
+    ]
   });
 });
 
